@@ -30,7 +30,8 @@ async function main() {
       data: {
         name: faker.person.fullName(),
         email: faker.internet.email(),
-        role: Role.PATIENT
+        role: Role.PATIENT,
+        supabaseId: faker.string.uuid()
       }
     })
 
