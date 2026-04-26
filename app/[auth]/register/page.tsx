@@ -2,56 +2,43 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const router = useRouter()
+  const supabase = createClient()
 
-  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-
   const [loading, setLoading] = useState(false)
 
-  async function handleRegister(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
 
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          password
-        })
-      })
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
 
-      if (!res.ok) throw new Error("Register failed")
+    setLoading(false)
 
-      router.push("/login")
-    } catch (err) {
-      console.error(err)
-      alert("Registration failed")
-    } finally {
-      setLoading(false)
+    if (error) {
+      alert(error.message)
+      return
     }
+
+    router.push("/patient/dashboard")
   }
 
   return (
     <Card className="p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">Create account</h1>
+      <h1 className="text-2xl font-semibold">Login</h1>
 
-      <form onSubmit={handleRegister} className="space-y-3">
-        <Input
-          placeholder="Full name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
+      <form onSubmit={handleLogin} className="space-y-3">
         <Input
           placeholder="Email"
           type="email"
@@ -67,7 +54,7 @@ export default function RegisterPage() {
         />
 
         <Button className="w-full" disabled={loading}>
-          {loading ? "Creating account..." : "Register"}
+          {loading ? "Logging in..." : "Login"}
         </Button>
       </form>
     </Card>

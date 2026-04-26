@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
+import { createClient } from "@/lib/supabase/client"
 
 export default function LoginPage() {
   const router = useRouter()
+  const supabase = createClient()
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -17,18 +20,18 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       })
 
-      if (!res.ok) throw new Error("Login failed")
+      if (error) throw error
 
       router.push("/patient/dashboard")
+      router.refresh()
     } catch (err) {
       console.error(err)
-      alert("Invalid credentials")
+      alert("Invalid email or password")
     } finally {
       setLoading(false)
     }
