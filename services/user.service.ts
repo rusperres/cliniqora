@@ -32,14 +32,12 @@ export async function createUser(data: {
   return prisma.user.create({
     data: {
       email: data.email,
-      name: data.name,
+      name: data.name ?? null,
       role: data.role ?? Role.PATIENT,
-      // you will add this field in schema:
-      // supabaseId: data.supabaseId
+      supabaseId: data.supabaseId
     }
   })
 }
-
 export async function listUsers() {
   return prisma.user.findMany({
     orderBy: { createdAt: "desc" }
