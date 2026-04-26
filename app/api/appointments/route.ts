@@ -1,16 +1,11 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getAppUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma/client"
+import { successResponse, errorResponse } from "@/lib/api-response"
+import { getAllAppointments, getAppointmentsByUser, createAppointment } from "@/services/appointment.service"
 
-/**
- * GET - fetch current user's appointments
- */
 export async function GET(req: NextRequest) {
   try {
-    // -----------------------------
-    // 1. AUTH (Supabase)
-    // -----------------------------
     const supabase = await createClient()
 
     const {
@@ -19,63 +14,27 @@ export async function GET(req: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (error || !authUser) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return errorResponse("Unauthorized", 401)
     }
 
-    // -----------------------------
-    // 2. MAP TO PRISMA USER
-    // -----------------------------
     const appUser = await getAppUser(authUser.id)
 
     if (!appUser) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      )
+      return errorResponse("User not found", 404)
     }
 
-    // -----------------------------
-    // 2.5 HANDLE STAFF/ADMIN QUERY
-    // -----------------------------
     const url = new URL(req.url)
     const roleParam = url.searchParams.get("role")
     const todayParam = url.searchParams.get("today")
 
     if (roleParam === "staff") {
       if (appUser.role !== "STAFF" && appUser.role !== "ADMIN") {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        return errorResponse("Forbidden", 403)
       }
 
-      let dateFilter = {}
-      if (todayParam === "true") {
-        const start = new Date()
-        start.setHours(0, 0, 0, 0)
-        const end = new Date()
-        end.setHours(23, 59, 59, 999)
-        dateFilter = {
-          scheduledAt: {
-            gte: start,
-            lt: end
-          }
-        }
-      }
-
-      const allAppointments = await prisma.appointment.findMany({
-        where: dateFilter,
-        include: {
-          user: true,
-          doctor: true,
-          service: true
-        },
-        orderBy: {
-          scheduledAt: "asc"
-        }
-      })
-
-      const mapped = allAppointments.map(a => ({
+      // Getting all appointments
+      const allAppointments = await getAllAppointments()
+      let mapped = allAppointments.map((a: any) => ({
         id: a.id,
         patientId: a.userId,
         patientName: a.user?.name || a.user?.email || "Unknown",
@@ -85,53 +44,29 @@ export async function GET(req: NextRequest) {
         scheduledAt: a.scheduledAt
       }))
 
-      // Return both arrays so frontend expecting `data.appointments` or `data.data` both work
-      return NextResponse.json({ data: mapped, appointments: mapped })
+      if (todayParam === "true") {
+        const start = new Date()
+        start.setHours(0, 0, 0, 0)
+        const end = new Date()
+        end.setHours(23, 59, 59, 999)
+        mapped = mapped.filter((a: any) => {
+           const d = new Date(a.scheduledAt)
+           return d >= start && d < end
+        })      
+      }
+
+      return successResponse(mapped)
     }
 
-    // -----------------------------
-    // 3. FETCH APPOINTMENTS (PATIENT)
-    // -----------------------------
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        userId: appUser.id
-      },
-      include: {
-        doctor: {
-          select: {
-            name: true,
-            specialty: true
-          }
-        },
-        service: {
-          select: {
-            name: true,
-            price: true
-          }
-        }
-      },
-      orderBy: {
-        scheduledAt: "desc"
-      }
-    })
-
-    return NextResponse.json({ data: appointments })
+    const appointments = await getAppointmentsByUser(appUser.id)
+    return successResponse(appointments)
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "Server error" },
-      { status: 500 }
-    )
+    return errorResponse(err.message || "Server error")
   }
 }
 
-/**
- * POST - create appointment (authenticated user only)
- */
 export async function POST(req: NextRequest) {
   try {
-    // -----------------------------
-    // 1. AUTH
-    // -----------------------------
     const supabase = await createClient()
 
     const {
@@ -140,61 +75,32 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (error || !authUser) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return errorResponse("Unauthorized", 401)
     }
 
-    // -----------------------------
-    // 2. MAP USER
-    // -----------------------------
     const appUser = await getAppUser(authUser.id)
 
     if (!appUser) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      )
+      return errorResponse("User not found", 404)
     }
 
-    // -----------------------------
-    // 3. BODY
-    // -----------------------------
     const body = await req.json()
-
     const { doctorId, serviceId, scheduledAt, notes } = body
 
     if (!doctorId || !serviceId || !scheduledAt) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      )
+      return errorResponse("Missing required fields", 400)
     }
 
-    // -----------------------------
-    // 4. CREATE APPOINTMENT
-    // -----------------------------
-    const appointment = await prisma.appointment.create({
-      data: {
-        userId: appUser.id,
-        doctorId,
-        serviceId,
-        scheduledAt: new Date(scheduledAt),
-        notes: notes || "",
-        status: "PENDING"
-      },
-      include: {
-        doctor: true,
-        service: true
-      }
+    const appointment = await createAppointment({
+      userId: appUser.id,
+      doctorId,
+      serviceId,
+      scheduledAt: new Date(scheduledAt),
+      notes
     })
 
-    return NextResponse.json({ data: appointment })
+    return successResponse(appointment)
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "Server error" },
-      { status: 500 }
-    )
+    return errorResponse(err.message || "Server error")
   }
 }

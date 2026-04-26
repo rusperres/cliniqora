@@ -1,27 +1,20 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma/client"
+import { NextRequest } from "next/server"
+import { getAllServices } from "@/services/service.service"
+import { successResponse, errorResponse } from "@/lib/api-response"
+import { parseQueryParams } from "@/lib/api-query"
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const services = await prisma.service.findMany({
-      select: {
-        id: true,
-        name: true,
-        price: true,
-        durationMin: true
-      },
-      orderBy: {
-        name: "asc"
-      }
+    const query = parseQueryParams(req, "name")
+    const services = await getAllServices({
+      skip: query.skip,
+      take: query.limit,
+      search: query.search,
+      sortBy: query.sortBy,
+      order: query.order
     })
-
-    return NextResponse.json({
-      data: services
-    })
+    return successResponse(services)
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "Failed to fetch services" },
-      { status: 500 }
-    )
+    return errorResponse(err.message || "Failed to fetch services")
   }
 }

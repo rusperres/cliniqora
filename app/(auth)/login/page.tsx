@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,33 +32,53 @@ export default function LoginPage() {
       return
     }
 
-    router.push("/patient/dashboard")
+    router.push("/patient-dashboard")
     router.refresh()
   }
 
   return (
-    <Card className="p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">Login</h1>
+    <div className="space-y-6">
+      <div className="space-y-2 text-center lg:text-left">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Welcome back</h1>
+        <p className="text-slate-500">Log in to your Cliniqora account</p>
+      </div>
 
-      <form onSubmit={handleLogin} className="space-y-3">
-        <Input
-          placeholder="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+      <Card className="p-8 shadow-card border-slate-200/60 rounded-2xl bg-white">
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-700">Email Address</label>
+            <Input
+              placeholder="name@example.com"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-11 bg-slate-50/50"
+            />
+          </div>
 
-        <Input
-          placeholder="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-700">Password</label>
+            <Input
+              placeholder="••••••••"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-11 bg-slate-50/50"
+            />
+          </div>
 
-        <Button className="w-full" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </Button>
-      </form>
-    </Card>
+          <Button className="w-full h-11 text-base shadow-sm mt-2" disabled={loading}>
+            {loading ? "Authenticating..." : "Sign In"}
+          </Button>
+        </form>
+
+        <div className="text-center text-sm text-slate-500 mt-6 pt-6 border-t border-slate-100">
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-blue-600 font-medium hover:underline">
+            Register here
+          </Link>
+        </div>
+      </Card>
+    </div>
   )
 }

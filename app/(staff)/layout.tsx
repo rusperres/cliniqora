@@ -3,8 +3,14 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { Sidebar } from "@/components/shared/sidebar"
-import { Navbar } from "@/components/shared/navbar"
+import { DashboardLayout } from "@/components/shared/dashboard-layout"
+import { LayoutDashboard, CalendarDays, Users } from "lucide-react"
+
+const STAFF_ITEMS = [
+  { label: "Schedule", href: "/staff-dashboard", icon: LayoutDashboard },
+  { label: "My Appointments", href: "/schedule", icon: CalendarDays },
+  { label: "Patient List", href: "/patients", icon: Users },
+]
 
 export default function StaffLayout({
   children,
@@ -37,18 +43,8 @@ export default function StaffLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
-      {/* SIDEBAR */}
-      <Sidebar />
-
-      {/* MAIN */}
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-
-        <main className="p-6 bg-muted/20 flex-1">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardLayout items={STAFF_ITEMS} badge="Staff">
+      {children}
+    </DashboardLayout>
   )
 }

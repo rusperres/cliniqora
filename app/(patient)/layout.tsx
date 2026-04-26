@@ -3,8 +3,14 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { Navbar } from "@/components/shared/navbar"
-import { Sidebar } from "@/components/shared/sidebar"
+import { DashboardLayout } from "@/components/shared/dashboard-layout"
+import { CalendarDays, LayoutDashboard, Stethoscope } from "lucide-react"
+
+const PATIENT_ITEMS = [
+  { label: "Dashboard", href: "/patient-dashboard", icon: LayoutDashboard },
+  { label: "Appointments", href: "/appointments", icon: CalendarDays },
+  { label: "Book Consultation", href: "/book", icon: Stethoscope },
+]
 
 export default function PatientLayout({
   children,
@@ -38,18 +44,8 @@ export default function PatientLayout({
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      {/* SIDEBAR */}
-      <Sidebar />
-
-      {/* MAIN AREA */}
-      <div className="flex-1 flex flex-col">
-        {/* TOP NAVBAR */}
-        <Navbar />
-
-        {/* PAGE CONTENT */}
-        <main className="flex-1 p-6">{children}</main>
-      </div>
-    </div>
+    <DashboardLayout items={PATIENT_ITEMS} badge="Patient">
+      {children}
+    </DashboardLayout>
   )
 }

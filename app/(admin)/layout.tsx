@@ -4,8 +4,14 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { Role } from "@prisma/client"
-import { Sidebar } from "@/components/shared/sidebar"
-import { Navbar } from "@/components/shared/navbar"
+import { DashboardLayout } from "@/components/shared/dashboard-layout"
+import { BarChart, Users, HeartPulse } from "lucide-react"
+
+const ADMIN_ITEMS = [
+  { label: "Analytics", href: "/admin-dashboard", icon: BarChart },
+  { label: "Manage Doctors", href: "/doctors", icon: Users },
+  { label: "Manage Services", href: "/services", icon: HeartPulse },
+]
 
 export default function AdminLayout({
   children,
@@ -37,21 +43,8 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
-      
-      {/* SIDEBAR */}
-      <Sidebar />
-
-      {/* MAIN AREA */}
-      <div className="flex-1 flex flex-col">
-
-        <Navbar />
-
-        <main className="p-6 bg-muted/20 flex-1">
-          {children}
-        </main>
-
-      </div>
-    </div>
+    <DashboardLayout items={ADMIN_ITEMS} badge="Admin">
+      {children}
+    </DashboardLayout>
   )
 }

@@ -19,6 +19,12 @@ const badgeVariants = cva(
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // Medical Trust Tones
+        scheduled: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+        confirmed: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400",
+        completed: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+        cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+        noshow: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
       },
     },
     defaultVariants: {

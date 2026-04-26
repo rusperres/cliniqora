@@ -1,8 +1,6 @@
 import { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getAppUser } from "@/lib/auth"
-import { Role } from "@prisma/client"
-import { listUsers } from "@/services/user.service"
 import { successResponse, errorResponse } from "@/lib/api-response"
 
 export async function GET(req: NextRequest) {
@@ -24,17 +22,11 @@ export async function GET(req: NextRequest) {
       return errorResponse("User not found", 404)
     }
 
-    // STAFF + ADMIN can access patients
-    if (appUser.role !== Role.ADMIN && appUser.role !== Role.STAFF) {
-      return errorResponse("Forbidden", 403)
-    }
-
-    const users = await listUsers()
-
-    // FILTER ONLY PATIENTS
-    const patients = users.filter((u) => u.role === Role.PATIENT)
-
-    return successResponse(patients)
+    // returning standard API response but keeping .user for hook compatibility
+    return new Response(JSON.stringify({ success: true, user: appUser }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    })
   } catch (err: any) {
     return errorResponse(err.message || "Server error")
   }

@@ -11,7 +11,7 @@ export async function POST(req: Request) {
         supabaseId: body.supabaseId,
         email: body.email,
         name: body.name,
-        role: Role.PATIENT
+        role: body.role || Role.PATIENT
       }
     })
 
