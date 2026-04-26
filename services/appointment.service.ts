@@ -3,8 +3,7 @@ import { AppointmentStatus } from "@prisma/client"
 
 /**
  * APPOINTMENT SERVICE
- * - Booking logic lives here
- * - NOT in API routes
+ * - All business logic lives here
  */
 
 export async function createAppointment(data: {
@@ -14,7 +13,6 @@ export async function createAppointment(data: {
   scheduledAt: Date
   notes?: string
 }) {
-  // basic rule: prevent double booking (simple version)
   const existing = await prisma.appointment.findFirst({
     where: {
       doctorId: data.doctorId,
@@ -34,6 +32,9 @@ export async function createAppointment(data: {
   })
 }
 
+/**
+ * PATIENT VIEW
+ */
 export async function getAppointmentsByUser(userId: string) {
   return prisma.appointment.findMany({
     where: { userId },
@@ -45,16 +46,23 @@ export async function getAppointmentsByUser(userId: string) {
   })
 }
 
+/**
+ * STAFF / ADMIN VIEW (ALL)
+ */
 export async function getAllAppointments() {
   return prisma.appointment.findMany({
     include: {
       user: true,
       doctor: true,
       service: true
-    }
+    },
+    orderBy: { scheduledAt: "asc" }
   })
 }
 
+/**
+ * UPDATE STATUS
+ */
 export async function updateAppointmentStatus(
   id: string,
   status: AppointmentStatus

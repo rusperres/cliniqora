@@ -1,62 +1,73 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createAppointment, getAllAppointments } from "@/services/appointment.service"
-import { getCurrentUser } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+import { getAppUser } from "@/lib/auth"
+import { Role } from "@prisma/client"
+import {
+  getDashboardStats,
+  getAppointmentsByMonth
+} from "@/services/analytics.service"
 
-/**
- * GET /api/appointments
- * - admin/staff: all appointments
- * - patient: only their own (later we can refine)
- */
 export async function GET(req: NextRequest) {
   try {
-    const token = req.headers.get("authorization")?.replace("Bearer ", "")
+    // -----------------------------
+    // AUTH (Supabase)
+    // -----------------------------
+    const supabase = await createClient()
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const {
+      data: { user: authUser },
+      error
+    } = await supabase.auth.getUser()
+
+    if (error || !authUser) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
     }
 
-    const user = await getCurrentUser(token)
+    // -----------------------------
+    // MAP TO APP USER (Prisma)
+    // -----------------------------
+    const appUser = await getAppUser(authUser.id)
 
-    if (!user) {
-      return NextResponse.json({ error: "Invalid session" }, { status: 401 })
+    if (!appUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      )
     }
 
-    const appointments = await getAllAppointments()
-
-    return NextResponse.json({ data: appointments })
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "Server error" },
-      { status: 500 }
-    )
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const token = req.headers.get("authorization")?.replace("Bearer ", "")
-
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    // -----------------------------
+    // ROLE CHECK
+    // -----------------------------
+    if (
+      appUser.role !== Role.ADMIN &&
+      appUser.role !== Role.STAFF
+    ) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      )
     }
 
-    const user = await getCurrentUser(token)
+    // -----------------------------
+    // DATA
+    // -----------------------------
+    const [stats, chart] = await Promise.all([
+      getDashboardStats(),
+      getAppointmentsByMonth()
+    ])
 
-    if (!user) {
-      return NextResponse.json({ error: "Invalid session" }, { status: 401 })
-    }
-
-    const body = await req.json()
-
-    const appointment = await createAppointment({
-      userId: user.user.id,
-      doctorId: body.doctorId,
-      serviceId: body.serviceId,
-      scheduledAt: new Date(body.scheduledAt),
-      notes: body.notes
+    // -----------------------------
+    // RESPONSE (CONSISTENT)
+    // -----------------------------
+    return NextResponse.json({
+      data: {
+        stats,
+        chart
+      }
     })
-
-    return NextResponse.json({ data: appointment })
   } catch (err: any) {
     return NextResponse.json(
       { error: err.message || "Server error" },

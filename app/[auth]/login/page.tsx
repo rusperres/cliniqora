@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { createClient } from "@/lib/supabase/client"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -19,22 +19,20 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
 
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
 
-      if (error) throw error
+    setLoading(false)
 
-      router.push("/patient/dashboard")
-      router.refresh()
-    } catch (err) {
-      console.error(err)
-      alert("Invalid email or password")
-    } finally {
-      setLoading(false)
+    if (error) {
+      alert(error.message)
+      return
     }
+
+    router.push("/patient/dashboard")
+    router.refresh()
   }
 
   return (
