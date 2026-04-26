@@ -6,18 +6,23 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       {/* Left Pane (Branding) */}
-      <div className="hidden lg:flex flex-col bg-slate-900 justify-between p-12 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-blue-600/10"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/40 via-transparent to-transparent"></div>
+      <div className="hidden lg:flex flex-col justify-between p-12 text-white relative overflow-hidden bg-slate-900">
+        <img 
+          src="/images/clinic-interior.png" 
+          alt="Modern Clinic Facility" 
+          className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
+        />
+        <div className="absolute inset-0 bg-blue-900/30"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
         
-        <div className="relative z-10 flex items-center gap-2">
-          <div className="bg-blue-600 text-white p-2 rounded-xl border border-blue-500/30">
+        <Link href="/" className="relative z-10 inline-flex items-center gap-2 hover:opacity-90 transition-opacity w-max">
+          <div className="bg-blue-600 text-white p-2 rounded-xl border border-blue-500/30 shadow-sm">
             <Activity className="size-6" />
           </div>
           <span className="text-2xl font-bold tracking-tight">
             Cliniqora
           </span>
-        </div>
+        </Link>
         
         <div className="relative z-10 max-w-lg mb-8">
           <h2 className="text-4xl font-bold leading-[1.15] mb-6 tracking-tight">

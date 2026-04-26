@@ -10,7 +10,7 @@ import { BarChart, Users, HeartPulse } from "lucide-react"
 const ADMIN_ITEMS = [
   { label: "Analytics", href: "/admin-dashboard", icon: BarChart },
   { label: "Manage Doctors", href: "/doctors", icon: Users },
-  { label: "Manage Services", href: "/services", icon: HeartPulse },
+  { label: "Manage Services", href: "/manage-services", icon: HeartPulse },
 ]
 
 export default function AdminLayout({

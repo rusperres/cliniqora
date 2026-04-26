@@ -10,14 +10,21 @@ export default function HomePage() {
       {/* Navbar */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="bg-blue-600 text-white p-1.5 rounded-lg shadow-sm">
               <Activity className="size-5" />
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900">
               Cliniqora
             </span>
-          </div>
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-8">
+            <Link href="/about" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">About Us</Link>
+            <Link href="/services" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Services</Link>
+            <Link href="/contact" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Contact</Link>
+          </nav>
+
           <div className="flex items-center space-x-4">
             <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               Staff Login
