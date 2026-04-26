@@ -1,13 +1,19 @@
 import { PrismaClient, Role, AppointmentStatus } from "@prisma/client"
 import { faker } from "@faker-js/faker"
 
-const prisma = new PrismaClient()
 
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DIRECT_URL
+    }
+  }
+})
 async function main() {
   console.log("🌱 Seeding Cliniqora database...")
 
   // -----------------------
-  // 1. CLEAN DATABASE
+  // CLEAN DATABASE (order matters)
   // -----------------------
   await prisma.appointment.deleteMany()
   await prisma.service.deleteMany()
@@ -15,65 +21,81 @@ async function main() {
   await prisma.user.deleteMany()
 
   // -----------------------
-  // 2. CREATE USERS (PATIENTS)
+  // CREATE PATIENTS
   // -----------------------
-  const patients = await Promise.all(
-    Array.from({ length: 10 }).map(() =>
-      prisma.user.create({
-        data: {
-          name: faker.person.fullName(),
-          email: faker.internet.email(),
-          role: Role.PATIENT
-        }
-      })
-    )
-  )
+  const patients = []
+
+  for (let i = 0; i < 10; i++) {
+    const user = await prisma.user.create({
+      data: {
+        name: faker.person.fullName(),
+        email: faker.internet.email(),
+        role: Role.PATIENT
+      }
+    })
+
+    patients.push(user)
+  }
+
+  console.log(`✔ Created ${patients.length} patients`)
 
   // -----------------------
-  // 3. CREATE DOCTORS
+  // CREATE DOCTORS
   // -----------------------
-  const doctors = await Promise.all(
-    [
-      { name: "Dr. Maria Santos", specialty: "General Medicine" },
-      { name: "Dr. Juan Dela Cruz", specialty: "Pediatrics" },
-      { name: "Dr. Ana Reyes", specialty: "Dermatology" },
-      { name: "Dr. Luis Gomez", specialty: "Cardiology" },
-      { name: "Dr. Sofia Lim", specialty: "ENT Specialist" }
-    ].map((doc) =>
-      prisma.doctor.create({
-        data: {
-          name: doc.name,
-          specialty: doc.specialty
-        }
-      })
-    )
-  )
+  const doctors = []
+
+  const doctorData = [
+    { name: "Dr. Maria Santos", specialty: "General Medicine" },
+    { name: "Dr. Juan Dela Cruz", specialty: "Pediatrics" },
+    { name: "Dr. Ana Reyes", specialty: "Dermatology" },
+    { name: "Dr. Luis Gomez", specialty: "Cardiology" },
+    { name: "Dr. Sofia Lim", specialty: "ENT Specialist" }
+  ]
+
+  for (const doc of doctorData) {
+    const doctor = await prisma.doctor.create({
+      data: {
+        name: doc.name,
+        specialty: doc.specialty
+      }
+    })
+
+    doctors.push(doctor)
+  }
+
+  console.log(`✔ Created ${doctors.length} doctors`)
 
   // -----------------------
-  // 4. CREATE SERVICES
+  // CREATE SERVICES
   // -----------------------
-  const services = await Promise.all(
-    [
-      { name: "General Consultation", price: 500, duration: 30 },
-      { name: "Follow-up Checkup", price: 300, duration: 20 },
-      { name: "Laboratory Request", price: 800, duration: 15 },
-      { name: "Physical Examination", price: 600, duration: 40 },
-      { name: "Emergency Consultation", price: 1200, duration: 60 },
-      { name: "Vaccination", price: 700, duration: 15 }
-    ].map((service) =>
-      prisma.service.create({
-        data: {
-          name: service.name,
-          price: service.price,
-          durationMin: service.duration,
-          description: faker.lorem.sentence()
-        }
-      })
-    )
-  )
+  const services = []
+
+  const serviceData = [
+    { name: "General Consultation", price: 500, duration: 30 },
+    { name: "Follow-up Checkup", price: 300, duration: 20 },
+    { name: "Laboratory Request", price: 800, duration: 15 },
+    { name: "Physical Examination", price: 600, duration: 40 },
+    { name: "Emergency Consultation", price: 1200, duration: 60 },
+    { name: "Vaccination", price: 700, duration: 15 }
+  ]
+
+  for (const service of serviceData) {
+    const created = await prisma.service.create({
+      data: {
+        name: service.name,
+        price: service.price,
+        durationMin: service.duration,
+        description: faker.lorem.sentence()
+      }
+    })
+
+    services.push(created)
+  }
+
+  console.log(`✔ Created ${services.length} services`)
 
   // -----------------------
-  // 5. CREATE APPOINTMENTS
+  // CREATE APPOINTMENTS
   // -----------------------
   const statuses = [
     AppointmentStatus.PENDING,
@@ -104,17 +126,14 @@ async function main() {
     appointments.push(appointment)
   }
 
+  console.log(`✔ Created ${appointments.length} appointments`)
+
   console.log("✅ Seeding complete!")
-  console.log({
-    patients: patients.length,
-    doctors: doctors.length,
-    services: services.length,
-    appointments: appointments.length
-  })
 }
 
 main()
   .catch((e) => {
+    console.error("❌ Seed failed:")
     console.error(e)
     process.exit(1)
   })
