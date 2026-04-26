@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getAppUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma/client"
 import { Role } from "@prisma/client"
+import {
+  getDashboardStats,
+  getAppointmentsByMonth
+} from "@/services/analytics.service"
 
-/**
- * GET - fetch current user's appointments
- */
 export async function GET(req: NextRequest) {
   try {
     // -----------------------------
-    // 1. AUTH (Supabase)
+    // AUTH (Supabase)
     // -----------------------------
     const supabase = await createClient()
 
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     }
 
     // -----------------------------
-    // 2. MAP TO PRISMA USER
+    // MAP TO APP USER (Prisma)
     // -----------------------------
     const appUser = await getAppUser(authUser.id)
 
@@ -39,107 +39,35 @@ export async function GET(req: NextRequest) {
     }
 
     // -----------------------------
-    // 3. FETCH APPOINTMENTS (SECURE)
+    // ROLE CHECK
     // -----------------------------
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        userId: appUser.id
-      },
-      include: {
-        doctor: {
-          select: {
-            name: true,
-            specialty: true
-          }
-        },
-        service: {
-          select: {
-            name: true,
-            price: true
-          }
-        }
-      },
-      orderBy: {
-        scheduledAt: "desc"
-      }
-    })
-
-    return NextResponse.json({ appointments })
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "Server error" },
-      { status: 500 }
-    )
-  }
-}
-
-/**
- * POST - create appointment (authenticated user only)
- */
-export async function POST(req: NextRequest) {
-  try {
-    // -----------------------------
-    // 1. AUTH
-    // -----------------------------
-    const supabase = await createClient()
-
-    const {
-      data: { user: authUser },
-      error
-    } = await supabase.auth.getUser()
-
-    if (error || !authUser) {
+    if (
+      appUser.role !== Role.ADMIN &&
+      appUser.role !== Role.STAFF
+    ) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: "Forbidden" },
+        { status: 403 }
       )
     }
 
     // -----------------------------
-    // 2. MAP USER
+    // DATA
     // -----------------------------
-    const appUser = await getAppUser(authUser.id)
-
-    if (!appUser) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      )
-    }
+    const [stats, chart] = await Promise.all([
+      getDashboardStats(),
+      getAppointmentsByMonth()
+    ])
 
     // -----------------------------
-    // 3. BODY
+    // RESPONSE (CONSISTENT)
     // -----------------------------
-    const body = await req.json()
-
-    const { doctorId, serviceId, scheduledAt, notes } = body
-
-    if (!doctorId || !serviceId || !scheduledAt) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      )
-    }
-
-    // -----------------------------
-    // 4. CREATE APPOINTMENT
-    // -----------------------------
-    const appointment = await prisma.appointment.create({
+    return NextResponse.json({
       data: {
-        userId: appUser.id,
-        doctorId,
-        serviceId,
-        scheduledAt: new Date(scheduledAt),
-        notes: notes || "",
-        status: "PENDING"
-      },
-      include: {
-        doctor: true,
-        service: true
+        stats,
+        chart
       }
     })
-
-    return NextResponse.json({ appointment })
   } catch (err: any) {
     return NextResponse.json(
       { error: err.message || "Server error" },
