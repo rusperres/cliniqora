@@ -38,7 +38,59 @@ export async function GET(req: NextRequest) {
     }
 
     // -----------------------------
-    // 3. FETCH APPOINTMENTS (SECURE)
+    // 2.5 HANDLE STAFF/ADMIN QUERY
+    // -----------------------------
+    const url = new URL(req.url)
+    const roleParam = url.searchParams.get("role")
+    const todayParam = url.searchParams.get("today")
+
+    if (roleParam === "staff") {
+      if (appUser.role !== "STAFF" && appUser.role !== "ADMIN") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+
+      let dateFilter = {}
+      if (todayParam === "true") {
+        const start = new Date()
+        start.setHours(0, 0, 0, 0)
+        const end = new Date()
+        end.setHours(23, 59, 59, 999)
+        dateFilter = {
+          scheduledAt: {
+            gte: start,
+            lt: end
+          }
+        }
+      }
+
+      const allAppointments = await prisma.appointment.findMany({
+        where: dateFilter,
+        include: {
+          user: true,
+          doctor: true,
+          service: true
+        },
+        orderBy: {
+          scheduledAt: "asc"
+        }
+      })
+
+      const mapped = allAppointments.map(a => ({
+        id: a.id,
+        patientId: a.userId,
+        patientName: a.user?.name || a.user?.email || "Unknown",
+        doctorName: a.doctor?.name || "Unknown",
+        serviceName: a.service?.name || "Unknown",
+        status: a.status,
+        scheduledAt: a.scheduledAt
+      }))
+
+      // Return both arrays so frontend expecting `data.appointments` or `data.data` both work
+      return NextResponse.json({ data: mapped, appointments: mapped })
+    }
+
+    // -----------------------------
+    // 3. FETCH APPOINTMENTS (PATIENT)
     // -----------------------------
     const appointments = await prisma.appointment.findMany({
       where: {
