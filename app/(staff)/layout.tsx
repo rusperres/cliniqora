@@ -3,7 +3,6 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { Role } from "@prisma/client"
 import { Sidebar } from "@/components/shared/sidebar"
 import { Navbar } from "@/components/shared/navbar"
 
@@ -13,7 +12,7 @@ export default function StaffLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { user, loading, role } = useAuth()
+  const { user, loading, isStaff, isAdmin } = useAuth()
 
   useEffect(() => {
     if (loading) return
@@ -23,19 +22,24 @@ export default function StaffLayout({
       return
     }
 
-    if (role !== Role.STAFF && role !== Role.ADMIN) {
+    if (!isStaff && !isAdmin) {
       router.push("/")
     }
-  }, [user, loading, role, router])
+  }, [user, loading, isStaff, isAdmin, router])
 
+  // Prevent flashing protected UI while redirecting
   if (loading || !user) {
     return <p className="p-6">Loading...</p>
+  }
+
+  if (!isStaff && !isAdmin) {
+    return null
   }
 
   return (
     <div className="flex min-h-screen">
       {/* SIDEBAR */}
-      <Sidebar role="staff" />
+      <Sidebar />
 
       {/* MAIN */}
       <div className="flex-1 flex flex-col">
