@@ -50,7 +50,6 @@ body {
 
   --radius: 0.75rem;
 
-  /* SAFE spacing tokens (replace broken spacing(7)) */
   --spacing-7: 1.75rem;
   --spacing-6: 1.5rem;
   --spacing-5: 1.25rem;
