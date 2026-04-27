@@ -1,4 +1,13 @@
 import { prisma } from "@/lib/prisma/client"
+import type { Prisma } from "@prisma/client"
+
+type Doctor = Prisma.DoctorGetPayload<{
+  select: {
+    id: true
+    name: true
+    specialty: true
+  }
+}>
 
 export async function getAllDoctors(options?: {
   skip?: number
@@ -6,7 +15,7 @@ export async function getAllDoctors(options?: {
   search?: string
   sortBy?: string
   order?: "asc" | "desc"
-}) {
+}): Promise<Doctor[]> {
   const whereClause = options?.search
     ? {
         OR: [
