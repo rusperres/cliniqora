@@ -25,15 +25,38 @@ export default function LoginPage() {
       password
     })
 
-    setLoading(false)
-
     if (error) {
+      setLoading(false)
       alert(error.message)
       return
     }
 
-    router.push("/patient-dashboard")
-    router.refresh()
+    // After login, fetch user role from our API
+    try {
+      const res = await fetch("/api/users/me")
+      if (!res.ok) {
+        throw new Error("Failed to fetch user data")
+      }
+
+      const data = await res.json()
+      const role = data.user?.role
+
+      setLoading(false)
+
+      if (role === "ADMIN") {
+        router.push("/admin-dashboard")
+      } else if (role === "STAFF") {
+        router.push("/staff-dashboard")
+      } else {
+        router.push("/patient-dashboard")
+      }
+
+      router.refresh()
+    } catch (err) {
+      setLoading(false)
+      console.error("Redirect error:", err)
+      router.push("/")
+    }
   }
 
   return (
