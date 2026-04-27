@@ -31,7 +31,7 @@ export default function StaffPatientsPage() {
       const res = await fetch("/api/appointments?role=staff")
       const data = await res.json()
 
-      setAppointments(data.appointments)
+      setAppointments(data.data || [])
 
       setLoading(false)
     }

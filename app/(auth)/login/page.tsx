@@ -39,7 +39,7 @@ export default function LoginPage() {
       }
 
       const data = await res.json()
-      const role = data.user?.role
+      const role = data.data?.role
 
       setLoading(false)
 

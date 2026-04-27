@@ -27,7 +27,7 @@ export default function StaffSchedulePage() {
       const res = await fetch("/api/appointments?role=staff&today=true")
       const data = await res.json()
 
-      setAppointments(data.appointments)
+      setAppointments(data.data || [])
       setLoading(false)
     }
 

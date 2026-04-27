@@ -44,7 +44,7 @@ export default function PatientDashboardPage() {
       if (!res.ok) return
 
       const data = await res.json()
-      setStats(data.stats)
+      setStats(data.data?.stats)
     }
 
     loadStats()

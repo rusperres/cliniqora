@@ -44,7 +44,7 @@ export function useAuth(): AuthState {
 
       const data = await res.json()
 
-      setUser(data.user)
+      setUser(data.data)
       setLoading(false)
     }
 

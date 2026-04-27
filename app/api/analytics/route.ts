@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getAppUser } from "@/lib/auth"
 import { Role } from "@prisma/client"
+import { successResponse } from "@/lib/api-response"
 import {
   getDashboardStats,
   getAppointmentsByMonth
@@ -62,11 +63,9 @@ export async function GET(req: NextRequest) {
     // -----------------------------
     // RESPONSE (CONSISTENT)
     // -----------------------------
-    return NextResponse.json({
-      data: {
-        stats,
-        chart
-      }
+    return successResponse({
+      stats,
+      chart
     })
   } catch (err: any) {
     return NextResponse.json(

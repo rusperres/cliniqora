@@ -23,7 +23,20 @@ export default function AdminDashboardPage() {
       const res = await fetch("/api/analytics?scope=admin")
       const data = await res.json()
 
-      setStats(data)
+      // The API returns { success: true, data: { stats, chart } }
+      // The stats object has { users, doctors, services, appointments, completed, pending }
+      const dashboardData = data.data?.stats
+
+      if (dashboardData) {
+        setStats({
+          totalUsers: dashboardData.users,
+          totalDoctors: dashboardData.doctors,
+          totalAppointments: dashboardData.appointments,
+          totalServices: dashboardData.services,
+          todayAppointments: dashboardData.pending // Using pending as a placeholder if today is not available
+        })
+      }
+      
       setLoading(false)
     }
 
@@ -31,11 +44,11 @@ export default function AdminDashboardPage() {
   }, [])
 
   if (loading || !stats) {
-    return <p className="text-sm text-muted-foreground">Loading admin dashboard...</p>
+    return <p className="p-6 text-sm text-muted-foreground">Loading admin dashboard...</p>
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
 
       {/* HEADER */}
       <div>

@@ -29,18 +29,19 @@ export default function StaffDashboardPage() {
       const res = await fetch("/api/appointments?role=staff&today=true")
       const data = await res.json()
 
-      setAppointments(data.appointments)
+      setAppointments(data.data || [])
       setLoading(false)
     }
 
     load()
   }, [])
 
-  // KPIs
-  const todayTotal = appointments.length
-  const completed = appointments.filter(a => a.status === "COMPLETED").length
-  const pending = appointments.filter(a => a.status === "PENDING").length
-  const cancelled = appointments.filter(a => a.status === "CANCELLED").length
+  // KPIs with safety checks
+  const safeAppointments = appointments || []
+  const todayTotal = safeAppointments.length
+  const completed = safeAppointments.filter(a => a.status === "COMPLETED").length
+  const pending = safeAppointments.filter(a => a.status === "PENDING").length
+  const cancelled = safeAppointments.filter(a => a.status === "CANCELLED").length
 
   // IMPORTANT: transform ONLY for UI compatibility
   const tableData = appointments.map((a) => ({

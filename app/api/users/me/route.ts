@@ -22,11 +22,8 @@ export async function GET(req: NextRequest) {
       return errorResponse("User not found", 404)
     }
 
-    // returning standard API response but keeping .user for hook compatibility
-    return new Response(JSON.stringify({ success: true, user: appUser }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    })
+    // returning standard API response
+    return successResponse(appUser)
   } catch (err: any) {
     return errorResponse(err.message || "Server error")
   }
