@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Role } from "@prisma/client"
 import { AppUser } from "@/types/user"
+
+type Role = "ADMIN" | "STAFF" | "PATIENT"
 
 type AuthState = {
   user: AppUser | null
@@ -34,7 +35,6 @@ export function useAuth(): AuthState {
         return
       }
 
-      // fetch your DB user (Prisma-backed)
       const res = await fetch("/api/users/me")
       if (!res.ok) {
         setUser(null)
@@ -55,8 +55,8 @@ export function useAuth(): AuthState {
     user,
     loading,
     isAuthenticated: !!user,
-    isAdmin: user?.role === Role.ADMIN,
-    isStaff: user?.role === Role.STAFF,
-    isPatient: user?.role === Role.PATIENT
+    isAdmin: user?.role === "ADMIN",
+    isStaff: user?.role === "STAFF",
+    isPatient: user?.role === "PATIENT"
   }
 }
