@@ -3,7 +3,6 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { Role } from "@prisma/client"
 import { DashboardLayout } from "@/components/shared/dashboard-layout"
 import { BarChart, Users, HeartPulse } from "lucide-react"
 
