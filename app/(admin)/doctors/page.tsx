@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { getAllDoctors } from "@/services/doctor.service"
+import type { Doctor } from "@/types/clinic"
 
 export default async function AdminDoctorsPage() {
-  const doctors = await getAllDoctors()
+  const doctors: Doctor[] = await getAllDoctors()
 
   return (
     <div className="space-y-6">
