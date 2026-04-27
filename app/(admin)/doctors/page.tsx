@@ -21,7 +21,7 @@ export default async function AdminDoctorsPage() {
         </CardHeader>
 
         <CardContent className="space-y-3">
-          {doctors.map((d) => (
+          {doctors.map((d: Doctor) => (
             <div
               key={d.id}
               className="flex justify-between items-center border rounded-lg p-3"

@@ -1,17 +1,7 @@
-export type Doctor = {
-  id: string
-  name: string
-  specialty: string
-  image?: string | null
-}
+import type { Doctor as PrismaDoctor, Service as PrismaService } from "@prisma/client"
 
-export type Service = {
-  id: string
-  name: string
-  description?: string | null
-  durationMin: number
-  price: number
-}
+export type Doctor = PrismaDoctor
+export type Service = PrismaService
 
 /**
  * Used for booking UI flow

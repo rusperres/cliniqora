@@ -1,13 +1,5 @@
 import { prisma } from "@/lib/prisma/client"
-import type { Prisma } from "@prisma/client"
-
-type Doctor = Prisma.DoctorGetPayload<{
-  select: {
-    id: true
-    name: true
-    specialty: true
-  }
-}>
+import type { Doctor } from "@/types/clinic"
 
 export async function getAllDoctors(options?: {
   skip?: number
@@ -31,11 +23,6 @@ export async function getAllDoctors(options?: {
     take: options?.take,
     orderBy: {
       [options?.sortBy || "name"]: options?.order || "asc"
-    },
-    select: {
-      id: true,
-      name: true,
-      specialty: true
     }
   })
 }
